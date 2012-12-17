@@ -1,0 +1,21 @@
+--- ApplyHotSpotWorkaround.java
++++ ApplyHotSpotWorkaround.java
+@@ -27,18 +27,16 @@ import java.io.FileOutputStream;
+ import java.io.IOException;
+ import java.io.InputStreamReader;
+ import java.io.OutputStreamWriter;
+ import java.io.Reader;
+ import java.io.Writer;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+ 
+-import nu.validator.htmlparser.impl.Tokenizer;
+-
+ /**
+  * Applies a workaround that splits the <code>stateLoop</code> method in the
+  * tokenizer into two methods. This way, each method stays under 8000 bytes in
+  * size. By default, HotSpot doesn't compile methods that are over 8000 bytes in
+  * size, which is a performance problem.
+  * 
+  * This program should have been written in Perl, but to avoid introducing new
+  * dependencies, it's written in Java. No attempt at efficiency has been made.

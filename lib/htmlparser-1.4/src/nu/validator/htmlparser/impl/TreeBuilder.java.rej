@@ -1,0 +1,28 @@
+--- TreeBuilder.java
++++ TreeBuilder.java
+@@ -674,23 +596,23 @@ public abstract class TreeBuilder<T> imp
+                         Portability.releaseString(emptyString);
+                         // [NOCPP[
+                     }
+                     switch (doctypeExpectation) {
+                         case HTML:
+                             // ]NOCPP]
+                             if (isQuirky(name, publicIdentifier,
+                                     systemIdentifier, forceQuirks)) {
+-                                err("Quirky doctype. Expected \u201C<!DOCTYPE html>\u201D.");
++                                errQuirkyDoctype();
+                                 documentModeInternal(DocumentMode.QUIRKS_MODE,
+                                         publicIdentifier, systemIdentifier,
+                                         false);
+                             } else if (isAlmostStandards(publicIdentifier,
+                                     systemIdentifier)) {
+-                                err("Almost standards mode doctype. Expected \u201C<!DOCTYPE html>\u201D.");
++                                errAlmostStandardsDoctype();
+                                 documentModeInternal(
+                                         DocumentMode.ALMOST_STANDARDS_MODE,
+                                         publicIdentifier, systemIdentifier,
+                                         false);
+                             } else {
+                                 // [NOCPP[
+                                 if ((Portability.literalEqualsString(
+                                         "-//W3C//DTD HTML 4.0//EN",
