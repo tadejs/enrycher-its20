@@ -1,0 +1,9 @@
+[submodule "EnrycherAPI"]
+	path = EnrycherAPI
+	url = git@github.com:tadejs/EnrycherAPI.git
+[submodule "ITS-2.0-Testsuite"]
+	path = ITS-2.0-Testsuite
+	url = git://github.com/finnle/ITS-2.0-Testsuite.git
+[submodule "webinar_its"]
+	path = webinar_its
+	url = git://github.com/finnle/webinar_its.git
