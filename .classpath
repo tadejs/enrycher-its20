@@ -16,6 +16,7 @@
 	<classpathentry kind="lib" path="webinar_its/code/demolibs/TestsuiteFunctionsjava7/TestSuiteFunctions.jar"/>
 	<classpathentry kind="lib" path="lib/jtidy-r938.jar"/>
 	<classpathentry kind="lib" path="lib/htmlparser-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/htmlcleaner-2.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="EnrycherAPI/bin"/>
 </classpath>

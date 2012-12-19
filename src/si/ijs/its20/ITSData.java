@@ -5,10 +5,21 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public class ITSData {
-	
-	
+	protected static Logger log = Logger.getLogger( ITSData.class.getName());
+	static {
+		Handler console = new ConsoleHandler();
+		console.setFormatter(new SimpleFormatter());
+		console.setLevel(Level.FINER);
+		log.addHandler(console);
+		log.setLevel(Level.FINER);
+	}
 	protected List<ToolRef> toolRefs;
 	
 	protected Granularity granularity;
@@ -20,8 +31,11 @@ public class ITSData {
 	protected String ident;
 	protected String source;
 	
-	//
+	// classRef
 	protected URI classRef;
+	
+	// domains
+	protected List<String> domains;
 	
 	public static class ToolRef {
 		public final String dataCategory;
@@ -39,6 +53,10 @@ public class ITSData {
 		public int hashCode() {
 			return dataCategory.hashCode() ^ tool.hashCode();
 		}
+	}
+	
+	public static enum NodeType {
+		element, attribute
 	}
 	
 	public static enum Granularity {
@@ -70,21 +88,8 @@ public class ITSData {
 
 	
 	public ITSData() {
-		granularity = Granularity.entity;
 	}
 	
-	public ITSData(ITSData other) {
-		this.granularity = other.granularity;
-		this.identRef = other.identRef;
-		this.ident = other.ident;
-		this.source = other.source;
-		this.classRef = other.classRef;
-		this.confidence = other.confidence;
-		if (other.toolRefs != null) {
-			this.toolRefs = new ArrayList<ToolRef>(other.toolRefs);
-		}
-		 
-	}
 	
 	public void addTool(String dc, String toolRef) {
 		ToolRef tool = new ToolRef(dc, toolRef);
@@ -95,26 +100,12 @@ public class ITSData {
 		
 	}
 	
-	public static ITSData fromIdentRef(URI iref) {
-		ITSData d = new ITSData();
-		d.identRef = iref;
-		return d;
+	public void addDomain(String domain) {
+		if (domains == null) {
+			domains = new ArrayList<String>();
+		}
+		domains.add(domain);
 	}
-	
-	public static ITSData fromSourceIdent(String source, String ident) {
-		ITSData d = new ITSData();
-		d.source = source;
-		d.ident = ident;
-		return d;
-	}
-	
-	public static ITSData fromClassRef(URI cref) {
-		ITSData d = new ITSData();
-		d.classRef = cref;
-		return d;
-	}
-	
-	
 	
 	public List<String> getAttributes(List<String> lst) {
 		if (toolRefs != null) {
@@ -141,7 +132,9 @@ public class ITSData {
 		if (confidence != null) {
 			lst.add("disambigConfidence=\""+ confidence.toString()+ "\"");
 		}
-		lst.add("disambigGranularity=\"" + granularity.toString()+ "\"");
+		if (granularity != null) {
+			lst.add("disambigGranularity=\"" + granularity.toString()+ "\"");
+		}
 		if (identRef != null) {
 			lst.add("disambigIdentRef=\"" + identRef.toString()+ "\"");
 		} else if (ident != null) {
@@ -149,16 +142,49 @@ public class ITSData {
 			lst.add("disambigSource=\"" + source + "\"");
 
 		}
-
-	
 		
+		if (domains != null) {
+			StringBuilder domainsB = new StringBuilder("domains=\"");
+			boolean first = true;
+			for (String dom : domains) {
+				if (first) {
+					first = false;
+				} else {
+					domainsB.append(", ");
+				}
+				if (dom.indexOf(' ') > -1) { 
+					domainsB.append('\'');
+					domainsB.append(dom);
+					domainsB.append('\'');
+				} else {
+					domainsB.append(dom);
+				}
+			}
+			domainsB.append('\"');
+			lst.add(domainsB.toString());
+		}
 		return lst;
+	}
+	
+	public String toString() {
+		StringBuilder sb= new StringBuilder();
+		boolean first = true;
+		for (String att : getAttributes(new ArrayList<String>())) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append('\t');
+			}
+			sb.append(att);
+		}
+		return sb.toString();
 		
 	}
 
-	public void applyParent(ITSData parentDisambig) {
+	public void inherit(ITSData parentDisambig) {
 		
-		if (classRef == null) {
+		// disambiguation is not inherited for attributes
+		/*if (classRef == null) {
 			classRef = parentDisambig.classRef;
 		}
 		if (identRef == null) {
@@ -175,7 +201,7 @@ public class ITSData {
 		}
 		if (confidence == null) {
 			confidence = parentDisambig.confidence;
-		}
+		}*/
 		
 		if (parentDisambig.toolRefs != null) {	
 			Set<ToolRef> tools = new HashSet<ToolRef>();
@@ -186,36 +212,49 @@ public class ITSData {
 			this.toolRefs = new ArrayList<ToolRef>(tools);
 		}
 		
+		if (domains == null) {
+			if (parentDisambig.domains != null) {
+				domains = new ArrayList<String>(parentDisambig.domains);
+			}
+		}
 	}
 	
-	public void applyOverwrite(ITSData parentDisambig) {
+	public void applyOverwrite(ITSData data) {
+		log.fine("Before overwrite: " + toString());
+		log.fine("Overwrite with: " + data.toString());
+		if (data.classRef != null) {
+			classRef = data.classRef;
+		}
+		if (data.identRef != null) {
+			identRef = data.identRef;
+		}
+		if (data.ident != null) {
+			ident = data.ident;
+		}
+		if (data.source != null) {
+			source = data.source;
+		}
+		if (data.granularity != null) {
+			granularity = data.granularity;
+		}
+		if (data.confidence != null) {
+			confidence = data.confidence;
+		}
 		
-		if (parentDisambig.classRef != null) {
-			classRef = parentDisambig.classRef;
-		}
-		if (parentDisambig.identRef != null) {
-			identRef = parentDisambig.identRef;
-		}
-		if (parentDisambig.ident != null) {
-			ident = parentDisambig.ident;
-		}
-		if (parentDisambig.source != null) {
-			source = parentDisambig.source;
-		}
-		if (parentDisambig.granularity != null) {
-			granularity = parentDisambig.granularity;
-		}
-		if (parentDisambig.confidence != null) {
-			confidence = parentDisambig.confidence;
-		}
-		
-		if (parentDisambig.toolRefs != null) {	
+		if (data.toolRefs != null) {	
 			Set<ToolRef> tools = new HashSet<ToolRef>();
 			if (this.toolRefs != null) {
 				tools.addAll(toolRefs);
 			}
-			tools.addAll(parentDisambig.toolRefs);
+			tools.addAll(data.toolRefs);
 			this.toolRefs = new ArrayList<ToolRef>(tools);
 		}
+		
+		if (data.domains != null) {
+			domains = new ArrayList<String>(data.domains);
+		} else {
+			domains = null;
+		}
+		log.fine("After overwrite: " + toString());
 	}
 }
