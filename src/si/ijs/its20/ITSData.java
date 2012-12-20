@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -24,6 +25,7 @@ public class ITSData {
 	
 	protected Granularity granularity;
 	protected Double confidence;
+	
 	// identRef
 	protected URI identRef;
 	
@@ -36,6 +38,7 @@ public class ITSData {
 	
 	// domains
 	protected List<String> domains;
+	protected Map<String, String> domainMap;
 	
 	public static class ToolRef {
 		public final String dataCategory;
@@ -104,7 +107,9 @@ public class ITSData {
 		if (domains == null) {
 			domains = new ArrayList<String>();
 		}
-		domains.add(domain);
+		if (!domains.contains(domain)) {
+			domains.add(domain);
+		}
 	}
 	
 	public List<String> getAttributes(List<String> lst) {
@@ -152,13 +157,13 @@ public class ITSData {
 				} else {
 					domainsB.append(", ");
 				}
-				if (dom.indexOf(' ') > -1) { 
+				/*if (dom.indexOf(' ') > -1) { 
 					domainsB.append('\'');
 					domainsB.append(dom);
 					domainsB.append('\'');
-				} else {
+				} else {*/
 					domainsB.append(dom);
-				}
+				//}
 			}
 			domainsB.append('\"');
 			lst.add(domainsB.toString());

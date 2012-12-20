@@ -1,6 +1,7 @@
 package si.ijs.its20;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -30,10 +31,13 @@ import org.htmlcleaner.HtmlCleaner;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import si.ijs.its20.Dialect.OnAttribute;
 import testsuitefunctions.TestSuiteFunctions;
 
 
@@ -45,12 +49,15 @@ import testsuitefunctions.TestSuiteFunctions;
  */
 public class DOMSnapshot {
 
-	protected Document doc;
 	protected String docRoot;
 	protected Map<String, ITSData> nodeItsData;
-	protected List<ITSState> nodes;
-	protected Map<String, String> paramMap;
-	protected Dialect dialect;
+	protected Parameters parameters;
+	protected ITSDocument doc;
+	protected AttributeReader attrReader;
+	protected Map<String, RuleResolver> resolvers;
+
+	
+	
 	protected static Logger log = Logger.getLogger(DOMSnapshot.class.getName());
 	static {
 		Handler console = new ConsoleHandler();
@@ -60,17 +67,22 @@ public class DOMSnapshot {
 		log.setLevel(Level.FINER);
 	}
 	
-	public DOMSnapshot(Document doc, String docRoot, Dialect dia) {
-		this.doc = doc;
+	public DOMSnapshot(Document xdoc, String docRoot, Dialect dia) {
 		this.docRoot = docRoot;
-		this.dialect = dia;
+		attrReader = new AttributeReader(dia);
 		nodeItsData = new HashMap<String, ITSData>();
-		nodes  = new ArrayList<ITSState>();
-		paramMap = new HashMap<String, String>();
-
-		gatherDocument(doc);
+		  
+		parameters = new Parameters();
+		doc = new ITSDocument(xdoc);
+		
+		resolvers = new HashMap<String, RuleResolver>();
+		XPath xpath = XPathFactory.newInstance().newXPath();
+		resolvers.put("its:disambiguationRule", new DisambigRuleResolver(xpath));
+		resolvers.put("its:domainRule", new DomainRuleResolver(xpath));
+		
 		extract();
 	}
+	
 
 	protected void applyRuleToNode(String nodePath, ITSData dab) {
 		ITSData existing = nodeItsData.get(nodePath);
@@ -123,21 +135,12 @@ public class DOMSnapshot {
 				
 		}
 	
-		return getPath(path);
+		return ITSDocument.getPath(path);
 	}
 	
-	/*public ITSState find(Node item) {
-		for (ITSState itss : nodes) {
-			if (item.equals(itss.node)) {
-				return itss;
-			}
-		}
-		
-		return null;
-	}*/
 	
 	public Iterable<ITSState> iterNodes() {
-		return nodes;
+		return doc.iterNodes();
 	}
 	
 	public ITSData getITSData(String nodePath) {
@@ -146,50 +149,43 @@ public class DOMSnapshot {
 	
 	protected void extract() {
 
-		XPathFactory xPathfactory = XPathFactory.newInstance();
-		XPath xpath = xPathfactory.newXPath();
 		
-		
-		for (ITSState nodeState : nodes) {
+		// parse the global rules from the file
+		for (ITSState nodeState : doc.iterNodes()) {
 			Node node = nodeState.node;
-					
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
+			RuleResolver resolver = resolvers.get(node.getNodeName()); 
+			if (resolver != null) {
+				GlobalRule rule = resolver.extractRule(attrReader, parameters, nodeState.node);
+				applyRule(resolver, rule);
+			}
 			
-				if (node.getNodeName().equals("its:param")) {
-					
-					String name = node.getAttributes().getNamedItem("name").getNodeValue();
-					String value = node.getTextContent();
-					paramMap.put(name, value);
-					
-					log.fine("Adding new parameter: " + name + "=" + value);
-
-					
-				} else if (node.getNodeName().equals("its:disambiguationRule")) {
-					log.fine("Got disambiguation rule");
-					// GLOBAL
-					extractGlobalDisambig(xpath, nodeState);
-				} else if (node.getNodeName().equals("its:domainRule")){
-					log.fine("Got domain rule");
-					extractGlobalDomain(xpath, nodeState);
-				} else if (dialect.isRules(node)) { 
-				
-					String external = dialect.getExternalRules(node);
-					if (external != null) {
-						extractExternalRules(xpath, external);
+			if (node.getNodeName().equals("its:param")) {
+				String name = node.getAttributes().getNamedItem("name").getNodeValue();
+				String value = node.getTextContent();
+				parameters.add(name, value);
+			} else if (attrReader.dialect.isRules(node)) { 
+				// we have external link (xlink:href or link href)
+				String external = attrReader.dialect.getExternalRules(node);
+				if (external != null) {
+					extractExternalRules(external);
+				}
+			} else if (node.getNodeName().equals("script")) {
+				// we have embedded
+				if (node.hasAttributes()) {
+					if (node.getAttributes().getNamedItem("type").getNodeValue().equals("application/its+xml")) {
+						extractEmbeddedRules(node.getTextContent());
 					}
 				}
-				
-				if (!nodeState.nodePath.contains("its:rules")) {
-					// unless we're in rules, look at local annotations
-					// LOCAL
-					extractLocal(nodeState);
-				}
-				
-			} 
+			}
+			if (!nodeState.nodePath.contains("its:rules")) {
+				// unless we're in rules, look at local annotations
+				// LOCAL
+				extractLocal(nodeState);
+			}
 		}
 		
-		// inheritance
-		for (ITSState nodeState : nodes) {
+		// process inheritance
+		for (ITSState nodeState : doc.iterNodes()) {
 			// Elements: handle inheritance 
 			ITSData parentData = getParentState(nodeState);
 			if (parentData != null) {
@@ -198,7 +194,6 @@ public class DOMSnapshot {
 				if (thisData == null) {
 					thisData = new ITSData();
 					applyRuleToNode(nodeState.nodePath, thisData);
-					//nodeItsData.put(nodeState.nodePath, thisData);
 				} 
 				thisData.inherit(parentData);				
 			}	
@@ -208,33 +203,18 @@ public class DOMSnapshot {
 		
 	}
 
-	protected void extractExternalRules(XPath xpath, String external) {
+	protected void extractExternalRules(String external) {
 		// load extra stuff from xlink
 		DocumentBuilder db = getXMLParser();
-		
+
+		Document docExtra = null;
 		try {
-			Document docExtra = null;
 			
 			// load the standoff rules
 			if (external.startsWith("http")) {
 				docExtra = db.parse(external);
 			} else {
 				docExtra = db.parse(docRoot + external);	
-			}
-			
-			// parse the global rules from the file
-			DOMSnapshot snapExtra = new DOMSnapshot(docExtra, docRoot, new XMLDialect());
-			for (ITSState itssExtra : snapExtra.nodes) {
-				if (itssExtra.node.getNodeName().equals("its:disambiguationRule")) {
-					extractGlobalDisambig(xpath, itssExtra);
-				} else if (itssExtra.node.getNodeName().equals("its:domainRule")) {
-					extractGlobalDomain(xpath, itssExtra);
-				} else if (itssExtra.node.getNodeName().equals("its:param")) {
-				
-					String name = itssExtra.node.getAttributes().getNamedItem("name").getNodeValue();
-					String value = itssExtra.node.getTextContent();
-					paramMap.put(name, value);
-				}
 			}
 			
 		} catch (DOMException e) {
@@ -247,65 +227,78 @@ public class DOMSnapshot {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	protected String expandParams(String val) {
-		if (val.indexOf('$') == -1 || val == null)		 
-			return val;
 		
-		for (Map.Entry<String, String> param : paramMap.entrySet()) {
-			val = val.replace("$" + param.getKey(), "'" + param.getValue() + "'");
+		if (docExtra != null) {
+			processStandoffMarkup(docExtra);
 		}
-		return val;
-		
+
 	}
 
-	protected XPathExpression compile(XPath xpath, String selector) {
-		String expanded = dialect.resolveNamespace(expandParams(selector));
-		try { 
-			log.fine("Got pointer " + expanded);
-			return xpath.compile(expanded);
-		} catch (XPathExpressionException xpe) {
-			log.fine("Invalid xpath expression:" + expanded);
-		}
-		return null;
-	}
-	
-	protected XPathExpression getIfExistsPointer(XPath xpath, String attName, Node node) {
-		XPathExpression exp = null;
-		Node att = node.getAttributes().getNamedItem(attName);
-		if (att != null) {
-			exp = compile(xpath, att.getNodeValue());
-		}
-		return exp;
-	}
-	
-	protected void extractGlobalDisambig(XPath xpath, ITSState nodeState) {
-		Node node = nodeState.node;
-		
-		// GLOBAL		
-		// every rule has exactly one selector, and may possibly have pointers
+	protected void extractEmbeddedRules(String rulesXml) {
+		// load extra stuff from xlink
+		DocumentBuilder db = getXMLParser();
 
-		XPathExpression selector = getIfExistsPointer(xpath, "selector", node);
-		XPathExpression classRefExp = getIfExistsPointer(xpath, "disambigClassRefPointer", node);
-		XPathExpression identRefExp = getIfExistsPointer(xpath, "disambigIdentRefPointer", node);
-		XPathExpression identExp = getIfExistsPointer(xpath, "disambigIdentPointer", node);
-		XPathExpression sourceExp = getIfExistsPointer(xpath, "disambigSourcePointer", node);
-		
-		ITSData globalRule = dialect.readNode(node);
-		if (globalRule == null) {
-			globalRule = new ITSData();
-		}
-				
-		// resolve the rule
+		Document docExtra = null;
 		try {
-			// fetch the targets
-			NodeList targets = (NodeList) selector.evaluate(doc, XPathConstants.NODESET);
+			InputSource is = new InputSource(new StringReader(rulesXml));
+			docExtra = db.parse(is);
+			
+		} catch (DOMException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (docExtra != null) {
+			processStandoffMarkup(docExtra);
+		}
+
+	}
+
+
+	
+	private void processStandoffMarkup(Document docExtra) {
+		// parse the global rules from the file
+		DOMSnapshot snapExtra = new DOMSnapshot(docExtra, docRoot, new XMLDialect());
+		for (ITSState itssExtra : snapExtra.iterNodes()) {
+			RuleResolver resolver = resolvers.get(itssExtra.node.getNodeName()); 
+			if (resolver != null) {
+				GlobalRule rule = resolver.extractRule(snapExtra.attrReader, snapExtra.parameters, itssExtra.node);
+				applyRule(resolver, rule);
+			}
+			
+			if (itssExtra.node.getNodeName().equals("its:param")) {
+				String name = itssExtra.node.getAttributes().getNamedItem("name").getNodeValue();
+				String value = itssExtra.node.getTextContent();
+				parameters.add(name, value);
+			}
+			
+		}
+	}
+	
+	private void applyRule(RuleResolver resolver,
+			GlobalRule rule) {
+		// fetch the targets
+		XPathExpression selectorExp = null;
+		try {
+			selectorExp = resolver.getXPath().compile(parameters.expandParams(attrReader.dialect.resolveNamespace(rule.selector)));
+		} catch (XPathExpressionException e) {
+			log.warning("Invalid xpath: " + rule.selector + " - " + e.getMessage());
+		}
+		
+		NodeList targets;
+		try {
+			targets = (NodeList) selectorExp.evaluate(doc.getRoot(), XPathConstants.NODESET);
+			
 			
 			
 			if (targets.getLength() == 0) {
-
-				log.fine("Warning: " + selector + " returned empty");
+				log.fine("Warning: " + rule.selector + " returned empty");
 			}
 			
 			for (int i = 0; i < targets.getLength(); i++) {
@@ -315,35 +308,16 @@ public class DOMSnapshot {
 				String itemPath = whoAmI(item);
 								
 				// resolve the pointer values
-			
 				ITSData thisNode = getITSData(itemPath);
 				if (thisNode == null) {
 					thisNode = new ITSData();
 				}
-				thisNode.applyOverwrite(globalRule);
-				if (identRefExp != null) {
-					String identRef = identRefExp.evaluate(item);
-					try {
-						thisNode.identRef = new URI(identRef);
-					} catch (URISyntaxException e) {
-						log.warning("Invalid URI: " + identRef);
-					}
+				if (rule.data != null) {
+					thisNode.applyOverwrite(rule.data);
 				}
-				if (classRefExp != null) {
-					String classRef = classRefExp.evaluate(item);
-					try {
-						thisNode.classRef = new URI(classRef);
-					} catch (URISyntaxException e) {
-						log.warning("Invalid URI: " + classRef);
-					}
-				}
-				if (sourceExp != null) {
-					thisNode.source = sourceExp.evaluate(item);
-				}
-				if (identExp != null) {
-					thisNode.ident = identExp.evaluate(item);
-			
-				}
+				
+				resolver.applyRule(attrReader, parameters, rule, item, thisNode);
+				
 				
 				log.fine("Got rules for " + itemPath + ": " + thisNode.toString());
 				
@@ -351,142 +325,12 @@ public class DOMSnapshot {
 				applyRuleToNode(itemPath, thisNode);
 
 			}
-			
-		} catch (XPathExpressionException e) {
-			log.warning("Invalid xpath: " + selector + " - " + e.getMessage());
+		} catch (XPathExpressionException e1) {
+			log.warning("Invalid xpath: " + rule.selector + " - " + e1.getMessage());
 		}
 	}
 
-	
-	protected void extractGlobalDomain(XPath xpath, ITSState nodeState) {
-		Node node = nodeState.node;
 		
-		// GLOBAL
-		ITSData globalRule = new ITSData();
-
-		String selector = null;
-		
-		XPathExpression domainExp = null;
-		
-		Map<String, String> domainMap = null;
-				
-		// every rule has exactly one selector, and may possibly have pointers
-		for (int i = 0; i < node.getAttributes().getLength(); i++) {
-			Node att = node.getAttributes().item(i);
-			
-			if (att.getNodeName().equals("selector")) {
-				// we have selector
-				selector = expandParams(att.getNodeValue());
-				//selector = cleanNamespaces(selector);
-			} else if (att.getNodeName().endsWith("Pointer")) {
-				// we have a pointer, figure out which one it is and compile its expression
-				if (att.getNodeName().equals("domainPointer")) {
-					try {
-						
-						domainExp = xpath.compile(expandParams(att.getNodeValue()));
-					} catch (XPathExpressionException xpe) {
-						log.warning("Invalid xpath for domain pointer: " + selector + " - " + xpe.getMessage());
-					}
-				} 
-			} else if (att.getNodeName().equals("domainMapping")) {
-				domainMap = new HashMap<String, String>();
-				String domainMapping = att.getNodeValue();
-				String[] domainMappingList = domainMapping.split("\\,");
-				
-				for (String mapping : domainMappingList) {
-
-					List<String> tokens = new ArrayList<String>();
-					boolean inQuote = false;
-					StringBuilder sb = new StringBuilder();
-					for (int j = 0; j < mapping.length(); j++) {
-						char c = mapping.charAt(j);
-						switch (c) {
-						case '\'': 
-							inQuote = !inQuote; break;
-						case ' ': {
-								if (inQuote) { 
-									sb.append(' ');
-								} else {
-									if (sb.length() > 0) {
-										tokens.add(sb.toString());
-										sb.setLength(0);
-									}
-								}	
-								break;
-							}
-						default:
-							sb.append(c); break;
-						}
-					}
-					if (sb.length() > 0) {
-						tokens.add(sb.toString());
-					}
-					if (tokens.size() >= 2) {
-						String target = tokens.get(tokens.size() - 1);
-						for (int j = 0; j < tokens.size() -1; j++) {
-							domainMap.put(tokens.get(j), target);
-							log.fine("Domain mapping: [" + tokens.get(j) + "] -> [" + target + "]");
-						}
-					}
-				}
-				
-				
-			}
-		}
-		
-		// resolve the rule
-		try {
-			// fetch the targets
-			XPathExpression expr = xpath.compile(selector);
-			NodeList targets = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
-			
-			
-			if (targets.getLength() == 0) {
-				log.warning("Selector " + selector + " returned empty set");
-			}
-			
-			for (int i = 0; i < targets.getLength(); i++) {
-				Node item = targets.item(i);
-				
-				// find which ITSState is already associated with this target
-				//ITSState itss = find(item);
-				String itemPath = whoAmI(item);
-				//System.out.println(itss.nodePath);
-				
-				// resolve the pointer values
-				ITSData thisNode = new ITSData();
-				thisNode.applyOverwrite(globalRule);
-				if (domainExp != null) {
-					String domains = domainExp.evaluate(item);
-					String[] domainList=  domains.split(",");
-					for (String dom : domainList) {
-						if (dom.charAt(0) == '\'' && dom.charAt(dom.length() - 1) == '\'') { 
-							dom = dom.substring(1, dom.length() - 2);
-						}
-						
-						if (domainMap != null) {
-							String mappedDomain = domainMap.get(dom);
-							if (mappedDomain != null) { 
-								thisNode.addDomain(mappedDomain);
-							} else {
-								thisNode.addDomain(dom);
-							}
-						} else {
-							thisNode.addDomain(dom);
-						}
-					}
-				}	
-				// assert the rule
-				applyRuleToNode(itemPath, thisNode);
-
-			}
-				
-			
-		} catch (XPathExpressionException e) {
-			log.warning("Invalid XPath expression "  + selector + " - " + e.getMessage());
-		}
-	}
-	
 	protected void extractLocal(ITSState nodeState) {
 		Node node = nodeState.node;
 
@@ -508,7 +352,7 @@ public class DOMSnapshot {
 			
 		} */
 		
-		ITSData itsd = dialect.readNode(node);
+		ITSData itsd = attrReader.readNode(node);
 		if (itsd != null) {
 			applyRuleToNode(nodeState.nodePath, itsd);
 		}
@@ -533,20 +377,20 @@ public class DOMSnapshot {
 		}
 		return parentDisambig;
 	}
+
 	
 	public List<String> getLines() {
 
 	
 		List<String> lines = new ArrayList<String>();
-		for (ITSState nodeState : nodes) {
+		for (ITSState nodeState : doc.iterNodes()) {
 			ArrayList<String> attributes = new ArrayList<String>();
 		
 			ITSData disambig = nodeItsData.get(nodeState.nodePath);
 			if (disambig != null) {
 				disambig.getAttributes(attributes);
 			}
-			attributes = TestSuiteFunctions.alphabeticOrder(attributes);
-			
+		
 			String line = null;
 			if (attributes.isEmpty()) {
 				line = nodeState.nodePath; 
@@ -591,87 +435,7 @@ public class DOMSnapshot {
 		return sb.toString();
 	}
 	
-	protected static String getPath(Collection<String> path) {
-		StringBuilder sb = new StringBuilder();
-		for (String string : path) {
-			sb.append(string);
-		}
-		return sb.toString();
-	}
-	
 
-	protected void gatherDocument(Document doc) {
-		Stack<String> path = new Stack<String>();
-		
-		Node root = doc.getFirstChild();
-		path.push("/" + root.getNodeName());
-		
-		ITSState rootState = new ITSState(root, getPath(path), null);
-		nodes.add(rootState);
-		
-		if (root.hasAttributes()) {
-			gatherAttributes(nodes, path, root, rootState);
-		}
-				
-		gatherNodes(root, rootState, nodes, path);
-	}
-	
-
-	protected void gatherNodes(Node node, ITSState parent, List<ITSState> lines, Stack<String> path) {
-		Map<String, Integer> nodeCounter = new HashMap<String, Integer>();
-		for (Node child = node.getFirstChild(); child != null;) {
-
-			Node nextChild = child.getNextSibling();
-			
-			String nodeName = child.getNodeName();
-			
-			if (child.getNodeType() == Node.ELEMENT_NODE) {
-			
-				Integer num = nodeCounter.get(nodeName);
-				if (num == null) {
-					num = Integer.valueOf(1);
-				} else {
-					num = num + 1;
-				}
-				nodeCounter.put(nodeName, num);
-				
-				path.push("/" + nodeName + "[" + num + "]");
-				
-				ITSState childState = new ITSState(child, getPath(path), parent);
-				lines.add(childState);
-								
-				if (child.hasAttributes()) {
-					gatherAttributes(lines, path, child, childState);
-				}
-				
-				gatherNodes(child, childState, lines, path);
-				path.pop();
-			
-			}
-								
-			child = nextChild;
-		}
-		
-		
-	}
-
-	protected void gatherAttributes(List<ITSState> lines, Stack<String> path,
-			Node child, ITSState childState) {
-		for (int i = 0; i < child.getAttributes().getLength(); i++) {
-			Node att = child.getAttributes().item(i);
-			
-			if (att.getNodeName().startsWith("xmlns"))
-				continue;
-			
-			path.push("/@" + att.getNodeName());
-			
-			lines.add(new ITSState(att, getPath(path), childState));
-
-			path.pop();
-			
-		}
-	}
-	
 	public static HtmlCleaner  getHtmlParser() {
 		/*Tidy tidy = new Tidy();
 		tidy.setTidyMark(false);
@@ -710,7 +474,9 @@ public class DOMSnapshot {
 		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = null;
 		try {
+			docBuilderFactory.setNamespaceAware(true);
 			docBuilder = docBuilderFactory.newDocumentBuilder();
+			
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
