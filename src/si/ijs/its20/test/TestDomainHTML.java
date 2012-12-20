@@ -6,7 +6,7 @@ import org.junit.Test;
 public class TestDomainHTML {
 		
 	protected void testHTMLDomain(String testName) {
-		System.out.println("====" +testName);
+		//System.out.println("====" +testName);
 		TestUtils.runTestHTML( "ITS-2.0-Testsuite/its2.0/inputdata/domain", "ITS-2.0-Testsuite/its2.0/expected/domain", "output/domain", testName);
 	}
 	

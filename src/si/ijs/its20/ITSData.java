@@ -225,8 +225,8 @@ public class ITSData {
 	}
 	
 	public void applyOverwrite(ITSData data) {
-		log.fine("Before overwrite: " + toString());
-		log.fine("Overwrite with: " + data.toString());
+		//log.fine("Before overwrite: " + toString());
+		//log.fine("Overwrite with: " + data.toString());
 		if (data.classRef != null) {
 			classRef = data.classRef;
 		}
@@ -260,6 +260,6 @@ public class ITSData {
 		} else {
 			domains = null;
 		}
-		log.fine("After overwrite: " + toString());
+		//log.fine("After overwrite: " + toString());
 	}
 }

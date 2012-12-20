@@ -50,9 +50,9 @@ public class TestUtils {
 			}
 			rdr.close();
 			
-			for (int i = 0; i < lst.size(); i++) {
+			/*for (int i = 0; i < lst.size(); i++) {
 				System.out.println(lst.get(i) + " === " + expected.get(i));
-			}
+			}*/
 			
 			
 			FileOutputStream fos = new FileOutputStream(actualOutputRoot + "/xml/" + testName + "output.txt");
@@ -102,9 +102,9 @@ public class TestUtils {
 			}
 			rdr.close();
 					
-			for (int i = 0; i < lst.size(); i++) {
+			/*for (int i = 0; i < lst.size(); i++) {
 				System.out.println(lst.get(i) + " === " + expected.get(i));
-			}
+			}*/
 			
 			FileOutputStream fos = new FileOutputStream(actualOutputRoot + "/html/" + testName + "output.txt");
 			OutputStreamWriter wri = new OutputStreamWriter(fos);

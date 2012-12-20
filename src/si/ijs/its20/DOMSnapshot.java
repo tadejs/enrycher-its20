@@ -79,10 +79,10 @@ public class DOMSnapshot {
 	protected void applyRuleToNode(String nodePath, ITSData dab) {
 		ITSData existing = nodeItsData.get(nodePath);
 		if (existing == null) {
-			log.finer("Asserting: " + nodePath + " " + dab.toString());
+			//log.finer("Asserting: " + nodePath + " " + dab.toString());
 			nodeItsData.put(nodePath, dab);
 		} else {
-			log.finer("Asserting: " + nodePath + " " + dab.toString() + " on top of " + existing);
+			//log.finer("Asserting: " + nodePath + " " + dab.toString() + " on top of " + existing);
 			existing.applyOverwrite(dab);
 		}
 	}
@@ -311,7 +311,7 @@ public class DOMSnapshot {
 				resolver.applyRule(attrReader, parameters, rule, item, thisNode);
 				
 				
-				log.fine("Got rules for " + itemPath + ": " + thisNode.toString());
+				//log.fine("Got rules for " + itemPath + ": " + thisNode.toString());
 				
 				// assert the rule
 				applyRuleToNode(itemPath, thisNode);
