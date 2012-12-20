@@ -2,20 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="EnrycherAPI/src"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="webinar_its/code/Demo/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/ant-1.7.1.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/ant-launcher-1.7.1.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/commons-codec-1.4.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/commons-fileupload-1.2.2.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/commons-fileupload.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/commons-httpclient-3.1.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/commons-io-2.0.1.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/commons-lang-2.4.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/commons-logging-1.1.1.jar"/>
-	<classpathentry kind="lib" path="webinar_its/code/demolibs/TestsuiteFunctionsjava7/TestSuiteFunctions.jar"/>
-	<classpathentry kind="lib" path="lib/jtidy-r938.jar"/>
-	<classpathentry kind="lib" path="lib/htmlparser-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/htmlcleaner-2.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="EnrycherAPI/bin"/>
