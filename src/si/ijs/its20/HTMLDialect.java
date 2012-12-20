@@ -1,10 +1,5 @@
 package si.ijs.its20;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.w3c.dom.DOMException;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 public class HTMLDialect implements Dialect {

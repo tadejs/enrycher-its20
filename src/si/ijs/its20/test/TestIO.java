@@ -22,7 +22,6 @@ import org.xml.sax.SAXException;
 
 import si.ijs.its20.DOMSnapshot;
 import si.ijs.its20.XMLDialect;
-import si.ijs.its20.DOMSnapshot.ITSState;
 
 public class TestIO {
 

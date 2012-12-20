@@ -54,9 +54,9 @@ public class DOMSnapshot {
 	static {
 		Handler console = new ConsoleHandler();
 		console.setFormatter(new SimpleFormatter());
-		console.setLevel(Level.FINER);
+		console.setLevel(Level.WARNING);
 		log.addHandler(console);
-		log.setLevel(Level.FINER);
+		log.setLevel(Level.WARNING);
 	}
 	
 	public DOMSnapshot(Document xdoc, String docRoot, Dialect dia) {

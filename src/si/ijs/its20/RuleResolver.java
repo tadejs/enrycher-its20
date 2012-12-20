@@ -16,14 +16,13 @@ import org.w3c.dom.Node;
 
 public abstract class RuleResolver {
 
-
 	protected static Logger log = Logger.getLogger(DisambigRuleResolver.class.getName());
 	static {
 		Handler console = new ConsoleHandler();
 		console.setFormatter(new SimpleFormatter());
-		console.setLevel(Level.FINER);
+		console.setLevel(Level.WARNING);
 		log.addHandler(console);
-		log.setLevel(Level.FINER);
+		log.setLevel(Level.WARNING);
 	}
 	
 	protected final XPath xpath;
