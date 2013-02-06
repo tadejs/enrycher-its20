@@ -30,7 +30,7 @@ public class AttributeReader {
 		 handlers.put(dialect.getAttName("disambigGranularity"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
-				item.granularity = ITSData.Granularity.fromString(nodeValue);
+				item.granularity = ITSData.Granularity.fromString(nodeValue.toLowerCase());
 			}
 		});
 		handlers.put(dialect.getAttName("disambigIdentRef"), new OnAttribute() {
