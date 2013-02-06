@@ -5,7 +5,7 @@ import org.junit.Test;
 public class TestDomainXML {
 		
 	protected void testXMLDomain(String testName) {
-		System.out.println("====" +testName);
+		//System.out.println("====" +testName);
 		TestUtils.runTestXML( "ITS-2.0-Testsuite/its2.0/inputdata/domain", "ITS-2.0-Testsuite/its2.0/expected/domain", "output/domain", testName);
 	}
 	

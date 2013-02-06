@@ -9,7 +9,7 @@ public class TestDisambiguationHTML {
 	protected static final String disambigMyOutputRoot = "output/disambiguation";
 	
 	protected void testHTMLDisambig(String testName) {
-		System.out.println("====" +testName);
+		//System.out.println("====" +testName);
 		TestUtils.runTestHTML(disambigInputRoot, disambigOutputRoot, disambigMyOutputRoot, testName);
 	}
 	

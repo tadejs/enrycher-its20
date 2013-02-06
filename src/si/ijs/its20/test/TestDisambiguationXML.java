@@ -9,7 +9,7 @@ public class TestDisambiguationXML {
 	protected static final String disambigOutputRoot = "ITS-2.0-Testsuite/its2.0/expected/disambiguation";
 	
 	protected void testXMLDisambig(String testName) {
-		System.out.println("====" +testName);
+		//System.out.println("====" +testName);
 		TestUtils.runTestXML(disambigInputRoot, disambigOutputRoot, disambigMyOutputRoot, testName);
 	}
 	
