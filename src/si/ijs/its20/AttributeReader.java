@@ -27,13 +27,13 @@ public class AttributeReader {
 		return dialect;
 	}
 	protected void initializeHandlers() {
-		 handlers.put(dialect.getAttName("disambigGranularity"), new OnAttribute() {
+		 /*handlers.put(dialect.getAttName("tanGranularity"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				item.granularity = ITSData.Granularity.fromString(nodeValue.toLowerCase());
 			}
-		});
-		handlers.put(dialect.getAttName("disambigIdentRef"), new OnAttribute() {
+		});*/
+		handlers.put(dialect.getAttName("tanIdentRef"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				try {
@@ -43,25 +43,25 @@ public class AttributeReader {
 				}
 			}
 		});
-		handlers.put(dialect.getAttName("disambigIdent"), new OnAttribute() {
+		handlers.put(dialect.getAttName("tanIdent"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				item.ident = nodeValue;
 			}
 		});
-		handlers.put(dialect.getAttName("disambigSource"), new OnAttribute() {
+		handlers.put(dialect.getAttName("tanSource"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				item.source = nodeValue;
 			}
 		});
-		handlers.put(dialect.getAttName("disambigConfidence"), new OnAttribute() {
+		handlers.put(dialect.getAttName("tanConfidence"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				item.confidence = new Double(nodeValue);
 			}
 		});
-		handlers.put(dialect.getAttName("disambigClassRef"), new OnAttribute() {
+		handlers.put(dialect.getAttName("tanClassRef"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				try {
@@ -123,11 +123,13 @@ public class AttributeReader {
 					if (tokens.size() >= 2) {
 						String target = tokens.get(tokens.size() - 1);
 						for (int j = 0; j < tokens.size() -1; j++) {
-							item.domainMap.put(tokens.get(j).toLowerCase(), target);
+							item.domainMap.put(tokens.get(j), target);
 							//log.fine("Domain mapping: [" + tokens.get(j) + "] -> [" + target + "]");
 						}
 					}
 				}
+				
+				//System.out.println(item.domainMap);
 			}
 		});
 	}

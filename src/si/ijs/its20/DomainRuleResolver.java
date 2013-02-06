@@ -47,9 +47,11 @@ public class DomainRuleResolver extends RuleResolver {
 						dom = dom.trim();
 						
 						if (rule.data != null && rule.data.domainMap != null) {
-							String mappedDomain = rule.data.domainMap.get(dom.toLowerCase());
+							String mappedDomain = rule.data.domainMap.get(dom);
 							if (mappedDomain != null) { 
-								data.addDomain(mappedDomain);
+								if (!mappedDomain.equals("")) {
+									data.addDomain(mappedDomain);
+								}
 							} else {
 								data.addDomain(dom);
 							}

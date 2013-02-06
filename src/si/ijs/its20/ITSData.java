@@ -23,7 +23,7 @@ public class ITSData {
 	}
 	protected List<ToolRef> toolRefs;
 	
-	protected Granularity granularity;
+	//protected Granularity granularity;
 	protected Double confidence;
 	
 	// identRef
@@ -62,7 +62,7 @@ public class ITSData {
 		element, attribute
 	}
 	
-	public static enum Granularity {
+	/*public static enum Granularity {
 		entity, lexicalConcept, ontologyConcept;
 		
 		
@@ -87,7 +87,7 @@ public class ITSData {
 				return null;
 			}
 		}
-	}
+	}*/
 
 	
 	public ITSData() {
@@ -132,19 +132,19 @@ public class ITSData {
 		}
 		
 		if (classRef != null) {
-			lst.add("disambigClassRef=\""+ classRef.toString()+ "\"");
+			lst.add("tanClassRef=\""+ classRef.toString()+ "\"");
 		}
 		if (confidence != null) {
-			lst.add("disambigConfidence=\""+ confidence.toString()+ "\"");
+			lst.add("tanConfidence=\""+ confidence.toString()+ "\"");
 		}
-		if (granularity != null) {
-			lst.add("disambigGranularity=\"" + granularity.toString()+ "\"");
-		}
+		/*if (granularity != null) {
+			lst.add("tanGranularity=\"" + granularity.toString()+ "\"");
+		}*/
 		if (identRef != null) {
-			lst.add("disambigIdentRef=\"" + identRef.toString()+ "\"");
+			lst.add("tanIdentRef=\"" + identRef.toString()+ "\"");
 		} else if (ident != null) {
-			lst.add("disambigIdent=\"" + ident+ "\"");
-			lst.add("disambigSource=\"" + source + "\"");
+			lst.add("tanIdent=\"" + ident+ "\"");
+			lst.add("tanSource=\"" + source + "\"");
 
 		}
 		
@@ -239,9 +239,9 @@ public class ITSData {
 		if (data.source != null) {
 			source = data.source;
 		}
-		if (data.granularity != null) {
+		/*if (data.granularity != null) {
 			granularity = data.granularity;
-		}
+		}*/
 		if (data.confidence != null) {
 			confidence = data.confidence;
 		}
