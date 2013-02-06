@@ -1,4 +1,4 @@
 [submodule "EnrycherAPI"]
 	path = EnrycherAPI
 	url = git@github.com:tadejs/EnrycherAPI.git
-	
+

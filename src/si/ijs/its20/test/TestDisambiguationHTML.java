@@ -35,5 +35,11 @@ public class TestDisambiguationHTML {
 	public void testHTML4() {
 		testHTMLDisambig("disambiguation4html");
 	}
+	
+
+	@Test
+	public void testHTML5() {
+		testHTMLDisambig("disambiguation5html");
+	}
 
 }
