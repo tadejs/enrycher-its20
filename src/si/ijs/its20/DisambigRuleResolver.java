@@ -23,10 +23,10 @@ public class DisambigRuleResolver extends RuleResolver {
 	public GlobalRule extractRule(AttributeReader reader, Parameters params, Node node) {
 		NamedNodeMap attrs = node.getAttributes();
 		GlobalRule rule = new GlobalRule(params.expandParams(attrs.getNamedItem("selector").getNodeValue()));
-		addPointer(attrs, rule, "tanClassRefPointer");
-		addPointer(attrs, rule, "tanIdentRefPointer");
-		addPointer(attrs, rule, "tanIdentPointer");
-		addPointer(attrs, rule, "tanSourcePointer");
+		addPointer(attrs, rule, "taClassRefPointer");
+		addPointer(attrs, rule, "taIdentRefPointer");
+		addPointer(attrs, rule, "taIdentPointer");
+		addPointer(attrs, rule, "taSourcePointer");
 		
 		//ITSData globalRule = dialect.readNode(node);
 		rule.data = reader.readNode(node);
@@ -38,10 +38,10 @@ public class DisambigRuleResolver extends RuleResolver {
 	public ITSData applyRule(AttributeReader reader, Parameters params, GlobalRule rule, Node item, ITSData data) {
 		try {
 			Dialect dialect = reader.getDialect();
-			XPathExpression identRefExp = compile(rule, params, dialect, "tanIdentRefPointer");
-			XPathExpression classRefExp = compile(rule,  params, dialect,"tanClassRefPointer");
-			XPathExpression identExp = compile(rule,  params, dialect,"tanIdentPointer");
-			XPathExpression sourceExp = compile( rule,  params, dialect,"tanSourcePointer");
+			XPathExpression identRefExp = compile(rule, params, dialect, "taIdentRefPointer");
+			XPathExpression classRefExp = compile(rule,  params, dialect,"taClassRefPointer");
+			XPathExpression identExp = compile(rule,  params, dialect,"taIdentPointer");
+			XPathExpression sourceExp = compile( rule,  params, dialect,"taSourcePointer");
 			
 			
 			if (identRefExp != null) {

@@ -132,19 +132,19 @@ public class ITSData {
 		}
 		
 		if (classRef != null) {
-			lst.add("tanClassRef=\""+ classRef.toString()+ "\"");
+			lst.add("taClassRef=\""+ classRef.toString()+ "\"");
 		}
 		if (confidence != null) {
-			lst.add("tanConfidence=\""+ confidence.toString()+ "\"");
+			lst.add("taConfidence=\""+ confidence.toString()+ "\"");
 		}
 		/*if (granularity != null) {
 			lst.add("tanGranularity=\"" + granularity.toString()+ "\"");
 		}*/
 		if (identRef != null) {
-			lst.add("tanIdentRef=\"" + identRef.toString()+ "\"");
+			lst.add("taIdentRef=\"" + identRef.toString()+ "\"");
 		} else if (ident != null) {
-			lst.add("tanIdent=\"" + ident+ "\"");
-			lst.add("tanSource=\"" + source + "\"");
+			lst.add("taIdent=\"" + ident+ "\"");
+			lst.add("taSource=\"" + source + "\"");
 
 		}
 		
@@ -261,5 +261,37 @@ public class ITSData {
 			domains = null;
 		}
 		//log.fine("After overwrite: " + toString());
+	}
+	
+	public List<String> validate() {
+		List<String> errors = new ArrayList<String>(2);
+		
+		if (ident != null) {
+			if (source == null) {
+				errors.add("Have taIdent, no taSource");
+			}
+			if (identRef != null) { 
+				errors.add("Have both taIdent, and taIdentRef");
+			}
+		} else {
+			if (source != null) {
+				errors.add("Have taSource, no taIdent");
+			}
+		}
+		
+		if (confidence != null) {
+			boolean haveTaTool = false;
+			for (ToolRef tool : toolRefs) {
+				if ("text-analysis".equals(tool.dataCategory)) {
+					haveTaTool = true;
+				}
+			}
+			if (!haveTaTool) {
+				errors.add("Have taConfidence, no annotatorsRef");
+			}
+		}
+		
+		
+		return errors;
 	}
 }

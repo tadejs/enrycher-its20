@@ -4,9 +4,9 @@ import org.junit.Test;
 
 public class TestDisambiguationHTML {
 
-	protected static final String disambigInputRoot = "ITS-2.0-Testsuite/its2.0/inputdata/disambiguation";
-	protected static final String disambigOutputRoot = "ITS-2.0-Testsuite/its2.0/expected/disambiguation";
-	protected static final String disambigMyOutputRoot = "output/disambiguation";
+	protected static final String disambigInputRoot = "ITS-2.0-Testsuite/its2.0/inputdata/textanalysis";
+	protected static final String disambigOutputRoot = "ITS-2.0-Testsuite/its2.0/expected/textanalysis";
+	protected static final String disambigMyOutputRoot = "output/textanalysis";
 	
 	protected void testHTMLDisambig(String testName) {
 		//System.out.println("====" +testName);
@@ -16,30 +16,30 @@ public class TestDisambiguationHTML {
 	
 	@Test
 	public void testHTML1() {
-		testHTMLDisambig("disambiguation1html");
+		testHTMLDisambig("textanalysis1html");
 	}
 
 	@Test
 	public void testHTML2() {
-		testHTMLDisambig("disambiguation2html");
+		testHTMLDisambig("textanalysis2html");
 	}
 
 	
 	@Test
 	public void testHTML3() {
-		testHTMLDisambig("disambiguation3html");
+		testHTMLDisambig("textanalysis3html");
 	}
 
 	
 	@Test
 	public void testHTML4() {
-		testHTMLDisambig("disambiguation4html");
+		testHTMLDisambig("textanalysis4html");
 	}
 	
 
 	@Test
 	public void testHTML5() {
-		testHTMLDisambig("disambiguation5html");
+		testHTMLDisambig("textanalysis5html");
 	}
 
 }

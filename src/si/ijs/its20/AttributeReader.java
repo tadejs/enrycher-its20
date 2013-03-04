@@ -33,7 +33,7 @@ public class AttributeReader {
 				item.granularity = ITSData.Granularity.fromString(nodeValue.toLowerCase());
 			}
 		});*/
-		handlers.put(dialect.getAttName("tanIdentRef"), new OnAttribute() {
+		handlers.put(dialect.getAttName("taIdentRef"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				try {
@@ -43,25 +43,25 @@ public class AttributeReader {
 				}
 			}
 		});
-		handlers.put(dialect.getAttName("tanIdent"), new OnAttribute() {
+		handlers.put(dialect.getAttName("taIdent"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				item.ident = nodeValue;
 			}
 		});
-		handlers.put(dialect.getAttName("tanSource"), new OnAttribute() {
+		handlers.put(dialect.getAttName("taSource"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				item.source = nodeValue;
 			}
 		});
-		handlers.put(dialect.getAttName("tanConfidence"), new OnAttribute() {
+		handlers.put(dialect.getAttName("taConfidence"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				item.confidence = new Double(nodeValue);
 			}
 		});
-		handlers.put(dialect.getAttName("tanClassRef"), new OnAttribute() {
+		handlers.put(dialect.getAttName("taClassRef"), new OnAttribute() {
 			@Override
 			public void set(ITSData item, String nodeValue) {
 				try {

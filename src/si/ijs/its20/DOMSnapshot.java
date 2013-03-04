@@ -476,4 +476,21 @@ public class DOMSnapshot {
 		return docBuilder;
 	}
 	
+	
+	public List<String> validate() {
+		List<String> errors = new ArrayList<String>();
+		for (Map.Entry<String, ITSData> me : nodeItsData.entrySet()) {
+			String key = me.getKey();
+			List<String> err = me.getValue().validate();
+			if (err.size() > 0) {
+				for (String error : err) {
+					errors.add(key + ": " + error);					
+				}
+			}
+		}
+				
+		return errors;
+				
+	}
+	
 }

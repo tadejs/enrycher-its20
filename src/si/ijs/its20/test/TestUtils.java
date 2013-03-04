@@ -37,6 +37,11 @@ public class TestUtils {
 			
 			DOMSnapshot snap =new DOMSnapshot(doc, inputRoot + "/xml/", new XMLDialect());
 			
+			
+			List<String> errors = snap.validate();
+			Assert.assertTrue(join(errors), errors.size() == 0);
+			
+			
 			List<String> lst = snap.getLines();
 			/*for (String line : lst) {
 				System.out.println(line);
@@ -77,6 +82,21 @@ public class TestUtils {
 		
 	}
 	
+	
+	public static String join(List<String> lst) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (String string : lst) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append("\n");
+			}
+			sb.append(string);
+		}
+		return sb.toString();
+	}
+	
 	public static void runTestHTML(String inputRoot, String outputRoot, String actualOutputRoot, String testName) {
 		HtmlCleaner builder = DOMSnapshot.getHtmlParser();
 		try {
@@ -90,6 +110,11 @@ public class TestUtils {
 					//builder.parse(is);
 			is.close();
 			DOMSnapshot snap =new DOMSnapshot(doc, inputRoot + "/html/", new HTMLDialect());
+			
+			
+			List<String> errors = snap.validate();
+			Assert.assertTrue(join(errors), errors.size() == 0);
+			
 			
 			List<String> lst = snap.getLines();
 			

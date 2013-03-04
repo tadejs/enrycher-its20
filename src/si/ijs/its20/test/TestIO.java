@@ -27,8 +27,8 @@ public class TestIO {
 
 	@Test
 	public void testXpathHtml() {
-		String dir = "ITS-2.0-Testsuite/its2.0/inputdata/disambiguation/html/";
-		String file = "disambiguation1html.html";
+		String dir = "ITS-2.0-Testsuite/its2.0/inputdata/textanalysis/html/";
+		String file = "textanalysis1html.html";
 		CleanerProperties cp = new CleanerProperties();
 		//cp.setNamespacesAware(true);
 		//cp.set
@@ -75,8 +75,8 @@ public class TestIO {
 
 	@Test
 	public void testWhoAmI() throws SAXException, IOException {
-		String dir = "ITS-2.0-Testsuite/its2.0/inputdata/disambiguation/xml/";
-		String file = "disambiguation1xml.xml";
+		String dir = "ITS-2.0-Testsuite/its2.0/inputdata/textanalysis/xml/";
+		String file = "textanalysis1xml.xml";
 		Document doc = DOMSnapshot.getXMLParser().parse(new File(dir + file));
 		
 		DOMSnapshot snap = new DOMSnapshot(doc, dir, new XMLDialect());
