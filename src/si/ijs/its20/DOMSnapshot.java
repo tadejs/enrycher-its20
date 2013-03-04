@@ -69,7 +69,7 @@ public class DOMSnapshot {
 		
 		resolvers = new HashMap<String, RuleResolver>();
 		XPath xpath = XPathFactory.newInstance().newXPath();
-		resolvers.put("its:textAnalysisAnnotationRule", new DisambigRuleResolver(xpath));
+		resolvers.put("its:textAnalysisRule", new DisambigRuleResolver(xpath));
 		resolvers.put("its:domainRule", new DomainRuleResolver(xpath));
 		
 		extract();
